@@ -1,0 +1,13 @@
+language: python
+python:
+    - 2.7
+
+build:
+  pre_ci:
+    - $SHIPPABLE_BUILD_DIR/updateMarkerTags.sh
+
+integrations:
+  hub:
+    - integrationName: "dockerhub"
+      type: "docker"
+
