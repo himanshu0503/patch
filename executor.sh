@@ -114,6 +114,7 @@ test_image() {
       echo 'Tests failed for image -----> '$osVer$lang$langVer
       should_push=false
       TEST_FAILED_IMAGES+=("$osVer$lang$langVer")
+      docker logs $containerId
     else
       echo 'All tests passed for image -----> '$osVer$lang$langVer
       TEST_PASSED_IMAGES+=("$osVer$lang$langVer")
@@ -154,7 +155,7 @@ display_results() {
     echo "<====================== FAILED IMAGES =======================>"
     for failedImage in "${TEST_FAILED_IMAGES[@]}"
       do
-        echo $passedImage
+        echo $failedImage
       done
     echo "<============================================================>"
   fi
