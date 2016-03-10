@@ -4,6 +4,6 @@ for file in $CURRENT_FILE_DIR/*;
   do
     if [ "$file" != "$CURRENT_FILE_DIR/executor.sh" ] && [ "$file" != "$CURRENT_FILE_DIR/function_start_generic.sh" ];
       then
-        . $file
+        /bin/bash $file
     fi
   done
