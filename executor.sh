@@ -25,11 +25,14 @@ build_image(){
   touch $CURRENT_FILE_DIR/patch.sh
   chmod +x $CURRENT_FILE_DIR/patch.sh
 
+  #append global level patch
   create_patch_file "$CURRENT_FILE_DIR/global"
+  #append os specific patch
   create_patch_file "$CURRENT_FILE_DIR/os/$osVersion"
+  #append language specific patch
   create_patch_file "$CURRENT_FILE_DIR/languages/$lang"
 
-
+  #append imaage specific patch
   if [ -d "$CURRENT_FILE_DIR/language/$lang" ]; then
     if [ -f "$CURRENT_FILE_DIR/language/$lang/$os$lang$level.sh" ]; then
       echo `cat $CURRENT_FILE_DIR/language/$lang/$os$lang$level.sh` >> patch.sh
@@ -72,8 +75,6 @@ create_docker_file() {
   fi
 
   touch $CURRENT_FILE_DIR/Dockerfile
-
-  echo $CURRENT_FILE_DIR
 
   echo "FROM drydock/$os$lang$langVer:marker" >> Dockerfile
   echo "ADD ./patch.sh /$os$lang$langVer/patch.sh" >> Dockerfile
