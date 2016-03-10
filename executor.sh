@@ -34,8 +34,8 @@ build_image(){
 
   #append imaage specific patch
   if [ -d "$CURRENT_FILE_DIR/language/$lang" ]; then
-    if [ -f "$CURRENT_FILE_DIR/language/$lang/$os$lang$level.sh" ]; then
-      echo `cat $CURRENT_FILE_DIR/language/$lang/$os$lang$level.sh` >> patch.sh
+    if [ -f "$CURRENT_FILE_DIR/language/$lang/$os$lang$langVer.sh" ]; then
+      echo `cat $CURRENT_FILE_DIR/language/$lang/$os$lang$langVer.sh` >> patch.sh
     fi
   fi
 
