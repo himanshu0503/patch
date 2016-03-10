@@ -5,6 +5,7 @@ python:
 build:
   pre_ci:
     #- $SHIPPABLE_BUILD_DIR/updateMarkerTags.sh
+    - $SHIPPABLE_BUILD_DIR/executor.sh
 
 integrations:
   hub:
