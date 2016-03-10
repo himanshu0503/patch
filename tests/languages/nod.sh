@@ -1,4 +1,4 @@
-~/.nvm/nvm.sh
+. ~/.nvm/nvm.sh
 nvm ls
 nvm use 0.10
 nvm use 0.12
