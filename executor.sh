@@ -35,10 +35,10 @@ build_image() {
   #append language specific patch
   create_patch_file "$CURRENT_FILE_DIR/languages/$lang"
 
-  #append imaage specific patch
+  #append image specific patch
   if [ -d "$CURRENT_FILE_DIR/language/$lang" ]; then
     if [ -f "$CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh" ]; then
-      echo `cat $CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh` >> patch.sh
+      cat $CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh >> patch.sh
     fi
   fi
 
@@ -53,18 +53,18 @@ create_patch_file() {
   path=$1
   if [ -d "$path" ]; then
     if [ -f "$path/base-patch.sh" ]; then
-      echo `cat $path/base-patch.sh` >> patch.sh
+      cat $path/base-patch.sh >> patch.sh
     fi
 
     if [ "$level" == "pls" ] || [ "$level" == "all" ]; then
       if [ -f "$path/pls-patch.sh" ]; then
-        echo `cat $path/pls-patch.sh` >> patch.sh
+        cat $path/pls-patch.sh >> patch.sh
       fi
     fi
 
     if [ "$level" == "all" ];then
       if [ -f "$path/all-patch.sh" ]; then
-        echo `cat $path/all-patch.sh` >> patch.sh
+        cat $path/all-patch.sh >> patch.sh
       fi
     fi
   fi
