@@ -116,7 +116,8 @@ test_image() {
   if [ "$lang" != "" ] || [ "$langVer" != "" ]; then
     echo 'Starting tests for image -----> '$osVer$lang$langVer
     #run the commands in a daemon mode
-    containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
+    #containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
+    containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "pickle install intl")
     exitCode=$(docker wait $containerId)
 
     #commands failed inside container
@@ -214,9 +215,9 @@ for osVer in "${os[@]}"
          do
             build_image "$osVer" "$lang" "$langVer"
             test_image
-            if [ "$should_push" = true ];then
-              push_image "$osVer" "$lang" "$langVer"
-            fi
+            # if [ "$should_push" = true ];then
+            #   push_image "$osVer" "$lang" "$langVer"
+            # fi
             clear_files
          done
       done
