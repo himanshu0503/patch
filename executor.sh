@@ -1,12 +1,14 @@
 declare -a os=('u12' 'u14')
-declare -a languages=('' 'nod' 'pyt' 'php' 'rub' 'gol' 'clo' 'jav' 'sca')
+declare -a languages=('' 'nod')
 declare -a languageVersions=('' 'pls' 'all')
 
+imageTag="prod"
 level="base"
 should_push=true
-CURRENT_FILE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TEST_PASSED_IMAGES=()
+current_file_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SUCCESSFULLY_PATCHED_IMAGES=()
 TEST_FAILED_IMAGES=()
+PUSH_FAILED_IMAGES=()
 
 build_image() {
   osVer=$1
@@ -21,24 +23,24 @@ build_image() {
     level="all"
   fi
 
-  if [ -f "$CURRENT_FILE_DIR/patch.sh" ]; then
-    rm $CURRENT_FILE_DIR/patch.sh
+  if [ -f "$current_file_dir/patch.sh" ]; then
+    rm $current_file_dir/patch.sh
   fi
 
-  touch $CURRENT_FILE_DIR/patch.sh
-  chmod +x $CURRENT_FILE_DIR/patch.sh
+  touch $current_file_dir/patch.sh
+  chmod +x $current_file_dir/patch.sh
 
   #append global level patch
-  create_patch_file "$CURRENT_FILE_DIR/global"
+  create_patch_file "$current_file_dir/global"
   #append os specific patch
-  create_patch_file "$CURRENT_FILE_DIR/os/$osVer"
+  create_patch_file "$current_file_dir/os/$osVer"
   #append language specific patch
-  create_patch_file "$CURRENT_FILE_DIR/languages/$lang"
+  create_patch_file "$current_file_dir/languages/$lang"
 
   #append image specific patch
-  if [ -d "$CURRENT_FILE_DIR/language/$lang" ]; then
-    if [ -f "$CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh" ]; then
-      cat $CURRENT_FILE_DIR/language/$lang/$osVer$lang$langVer-patch.sh >> patch.sh
+  if [ -d "$current_file_dir/language/$lang" ]; then
+    if [ -f "$current_file_dir/language/$lang/$osVer$lang$langVer-patch.sh" ]; then
+      cat $current_file_dir/language/$lang/$osVer$lang$langVer-patch.sh >> patch.sh
     fi
   fi
 
@@ -46,7 +48,7 @@ build_image() {
 
   create_docker_file "$osVer" "$lang" "$langVer"
 
-  docker build -t="drydock/$osVer$lang$langVer:prod" $CURRENT_FILE_DIR
+  docker build -t="drydock/$osVer$lang$langVer:$imageTag" $current_file_dir
 }
 
 create_patch_file() {
@@ -75,19 +77,19 @@ create_patch_test_dir() {
   lang=$2
   langVer=$3
 
-  if [ -d "$CURRENT_FILE_DIR/patch_test" ];then
-    rm -r $CURRENT_FILE_DIR/patch_test
+  if [ -d "$current_file_dir/patch_test" ];then
+    rm -r $current_file_dir/patch_test
   fi
 
   if [ "$lang" != "" ] || [ "$langVer" != "" ]; then
-    mkdir $CURRENT_FILE_DIR/patch_test
+    mkdir $current_file_dir/patch_test
     if [ "$lang" != "" ];then
-      cp $CURRENT_FILE_DIR'/tests/languages/'$lang'.sh' $CURRENT_FILE_DIR/'patch_test'
-      cp $CURRENT_FILE_DIR'/tests/languages/executor.sh' $CURRENT_FILE_DIR/'patch_test'
+      cp $current_file_dir'/tests/languages/'$lang'.sh' $current_file_dir/'patch_test'
+      cp $current_file_dir'/tests/languages/executor.sh' $current_file_dir/'patch_test'
     fi
     # Run only pls and all tests if language is not present and services exist
     if [ "$langVer" != "" ] && [ "$lang" == "" ];then
-      cp $CURRENT_FILE_DIR/'tests/'$langVer/* $CURRENT_FILE_DIR/'patch_test'
+      cp $current_file_dir/'tests/'$langVer/* $current_file_dir/'patch_test'
     fi
   fi
 }
@@ -97,11 +99,11 @@ create_docker_file() {
   lang=$2
   langVer=$3
 
-  if [ -f "$CURRENT_FILE_DIR/Dockerfile" ]; then
-    rm $CURRENT_FILE_DIR/Dockerfile
+  if [ -f "$current_file_dir/Dockerfile" ]; then
+    rm $current_file_dir/Dockerfile
   fi
 
-  touch $CURRENT_FILE_DIR/Dockerfile
+  touch $current_file_dir/Dockerfile
 
   echo "FROM drydock/$osVer$lang$langVer:marker" >> Dockerfile
   echo "ADD ./patch.sh /$osVer$lang$langVer/patch.sh" >> Dockerfile
@@ -114,7 +116,7 @@ test_image() {
   if [ "$lang" != "" ] || [ "$langVer" != "" ]; then
     echo 'Starting tests for image -----> '$osVer$lang$langVer
     #run the commands in a daemon mode
-    containerId=$(docker run -d drydock/$osVer$lang$langVer':prod' /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
+    containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
     exitCode=$(docker wait $containerId)
 
     #commands failed inside container
@@ -125,47 +127,82 @@ test_image() {
       docker logs $containerId
     else
       echo 'All tests passed for image -----> '$osVer$lang$langVer
-      TEST_PASSED_IMAGES+=("$osVer$lang$langVer")
     fi
   else
     echo 'Skipping tests for image -----> '$osVer$lang$langVer
-    TEST_PASSED_IMAGES+=("$osVer$lang$langVer")
   fi
 }
 
 clear_files() {
-  if [ -d "$CURRENT_FILE_DIR/patch_test" ];then
-    rm -r $CURRENT_FILE_DIR/patch_test
+  if [ -d "$current_file_dir/patch_test" ];then
+    rm -r $current_file_dir/patch_test
   fi
 
-  if [ -f "$CURRENT_FILE_DIR/patch.sh" ]; then
-    rm $CURRENT_FILE_DIR/patch.sh
+  if [ -f "$current_file_dir/patch.sh" ]; then
+    rm $current_file_dir/patch.sh
   fi
 
-  if [ -f "$CURRENT_FILE_DIR/Dockerfile" ]; then
-    rm $CURRENT_FILE_DIR/Dockerfile
+  if [ -f "$current_file_dir/Dockerfile" ]; then
+    rm $current_file_dir/Dockerfile
   fi
 
   level="base"
   should_push=true
+  imageId_before_push=''
+  imageId_after_push=''
+}
+
+push_image() {
+  osVer=$1
+  lang=$2
+  langVer=$3
+
+  imageId_before_push=`docker images | grep -w 'drydock/'$osVer$lang$langVer | grep $imageTag | awk {'print $3'}`
+
+  docker push 'drydock/'$osVer$lang$langVer':'$imageTag
+
+  docker pull 'drydock/'$osVer$lang$langVer':'$imageTag
+
+  imageId_after_push=`docker images | grep -w 'drydock/'$osVer$lang$langVer | grep $imageTag | awk {'print $3'}`
+
+  if [ "$imageId_before_push" != "$imageId_after_push" ];then
+    PUSH_FAILED_IMAGES+=("$osVer$lang$langVer")
+  else
+    SUCCESSFULLY_PATCHED_IMAGES+=("$osVer$lang$langVer")
+  fi
+
 }
 
 display_results() {
-  if [ ${#TEST_PASSED_IMAGES[@]} != 0 ];then
-    echo "<====================== PASSED IMAGES =======================>"
-    for passedImage in "${TEST_PASSED_IMAGES[@]}"
+
+  if [ ${#SUCCESSFULLY_PATCHED_IMAGES[@]} != 0 ];then
+    echo "<=============== SUCCESSFULLY PASSED IMAGES =================>"
+    for passedImage in "${SUCCESSFULLY_PATCHED_IMAGES[@]}"
       do
         echo $passedImage
       done
     echo "<============================================================>"
   fi
   if [ ${#TEST_FAILED_IMAGES[@]} != 0 ];then
-    echo "<====================== FAILED IMAGES =======================>"
-    for failedImage in "${TEST_FAILED_IMAGES[@]}"
+    echo "<=============== IMAGES FOR WHICH TESTS FAILED ===============>"
+    for testFailedImage in "${TEST_FAILED_IMAGES[@]}"
       do
-        echo $failedImage
+        echo $testFailedImage
       done
     echo "<============================================================>"
+  fi
+
+  if [ ${#PUSH_FAILED_IMAGES[@]} != 0 ];then
+    echo "<================ IMAGES FOR WHICH PUSH FAILED ================>"
+    for pushFailedImage in "${PUSH_FAILED_IMAGES[@]}"
+      do
+        echo $pushFailedImage
+      done
+    echo "<============================================================>"
+  fi
+
+  if [ ${#TEST_FAILED_IMAGES[@]} != 0 ] || [ ${#PUSH_FAILED_IMAGES[@]} != 0 ];then
+    return 99
   fi
 }
 
@@ -178,7 +215,7 @@ for osVer in "${os[@]}"
             build_image "$osVer" "$lang" "$langVer"
             test_image
             # if [ "$should_push" = true ];then
-            #   docker push 'drydock/'$osVer$lang$langVer
+            #   push_image "$osVer" "$lang" "$langVer"
             # fi
             clear_files
          done
