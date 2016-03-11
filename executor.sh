@@ -1,4 +1,4 @@
-declare -a os=('u12')
+declare -a os=('u14')
 declare -a languages=('php')
 declare -a languageVersions=('')
 
