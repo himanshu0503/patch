@@ -117,7 +117,7 @@ test_image() {
     echo 'Starting tests for image -----> '$osVer$lang$langVer
     #run the commands in a daemon mode
     #containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
-    containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "pickle install intl")
+    containerId=$(docker run -d drydock/$osVer$lang$langVer':'$imageTag /bin/bash -c "/$osVer$lang$langVer/patch_test/executor.sh")
     exitCode=$(docker wait $containerId)
 
     #commands failed inside container
