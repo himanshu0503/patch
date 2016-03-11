@@ -1,5 +1,5 @@
 declare -a os=('u12' 'u14')
-declare -a languages=('' 'nod')
+declare -a languages=('php')
 declare -a languageVersions=('' 'pls' 'all')
 
 imageTag="prod"
@@ -214,9 +214,9 @@ for osVer in "${os[@]}"
          do
             build_image "$osVer" "$lang" "$langVer"
             test_image
-            # if [ "$should_push" = true ];then
-            #   push_image "$osVer" "$lang" "$langVer"
-            # fi
+            if [ "$should_push" = true ];then
+              push_image "$osVer" "$lang" "$langVer"
+            fi
             clear_files
          done
       done
