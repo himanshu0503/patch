@@ -1,8 +1,8 @@
-declare -a os=('u12' 'u14')
+declare -a os=('u12')
 declare -a languages=('php')
-declare -a languageVersions=('' 'pls' 'all')
+declare -a languageVersions=('')
 
-imageTag="prod"
+imageTag="patched"
 level="base"
 should_push=true
 current_file_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -215,9 +215,9 @@ for osVer in "${os[@]}"
          do
             build_image "$osVer" "$lang" "$langVer"
             test_image
-            # if [ "$should_push" = true ];then
-            #   push_image "$osVer" "$lang" "$langVer"
-            # fi
+            if [ "$should_push" = true ];then
+              push_image "$osVer" "$lang" "$langVer"
+            fi
             clear_files
          done
       done
